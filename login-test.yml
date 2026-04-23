@@ -1,0 +1,68 @@
+name: 🧪 STSMS Login Test - Tự động chạy
+
+on:
+  # Chạy thủ công từ GitHub UI (Manual Tester bấm nút Run)
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Chọn trình duyệt'
+        required: true
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - all
+
+  # Tự động chạy mỗi ngày lúc 8 giờ sáng (giờ Việt Nam = UTC+7)
+  schedule:
+    - cron: '0 1 * * 1-5'  # 8:00 SA, Thứ 2 - Thứ 6
+
+jobs:
+  test:
+    name: Playwright Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Cài Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Cài dependencies
+        run: npm ci
+
+      - name: 🌐 Cài Playwright browsers
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: 🧪 Chạy Login Tests
+        run: |
+          if [ "${{ github.event.inputs.browser }}" = "all" ] || [ -z "${{ github.event.inputs.browser }}" ]; then
+            npx playwright test tests/login.spec.ts
+          else
+            npx playwright test tests/login.spec.ts --project=${{ github.event.inputs.browser }}
+          fi
+        env:
+          # ✅ Lấy từ GitHub Secrets (an toàn, không lộ password)
+          BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+          BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
+
+      - name: 📊 Upload báo cáo HTML
+        uses: actions/upload-artifact@v4
+        if: always()   # Upload kể cả khi test fail
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: playwright-report/
+          retention-days: 30
+
+      - name: 📋 Upload kết quả XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ github.run_number }}
+          path: test-results/
+          retention-days: 30
