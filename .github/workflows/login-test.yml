@@ -34,7 +34,7 @@ jobs:
           node-version: '20'
 
       - name: 📦 Cài dependencies
-        run: npm ci
+        run: npm install
 
       - name: 🌐 Cài Playwright browsers
         run: npx playwright install --with-deps chromium firefox
