@@ -50,6 +50,8 @@ jobs:
           # ✅ Lấy từ GitHub Secrets (an toàn, không lộ password)
           BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
           BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}        # thêm dòng này
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}  # thêm dòng này
 
       - name: 📊 Upload báo cáo HTML
         uses: actions/upload-artifact@v4
